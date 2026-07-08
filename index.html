@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Ìwé Ìrántí — My Diary</title>
+<meta name="theme-color" content="#1F3A5F">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="lockScreen">
+  <div class="eyebrow sans">Ìwé Ìrántí</div>
+  <div id="lockHeading" style="font-family:Georgia,serif;font-style:italic;font-size:22px;">Enter your PIN</div>
+  <div class="thread"></div>
+  <div id="pinDots"></div>
+  <div id="pinError" class="sans"></div>
+  <div id="pinPad"></div>
+  <div id="pinSetupNote" class="sans" style="display:none;margin-top:16px;"></div>
+  <div id="pinWarning" style="display:none;"></div>
+  <button id="skipPinBtn" class="sans" style="display:none;background:none;border:none;color:#D7CBB0;text-decoration:underline;margin-top:14px;font-size:13px;" onclick="skipPinSetup()">Skip — don't lock my diary</button>
+</div>
+
+<div class="app">
+  <header>
+    <div class="top-row">
+      <div>
+        <div class="eyebrow" id="greetingLabel">Today</div>
+        <h1 id="greetingText">Good day</h1>
+        <div class="sub" id="todayDate"></div>
+      </div>
+      <button class="theme-toggle" id="themeToggleBtn" onclick="toggleTheme()">🌙 Dark</button>
+    </div>
+    <div class="streak-badge" id="streakBadge">🔥 0-day streak</div>
+  </header>
+
+  <!-- HOME -->
+  <div class="screen active" id="screen-home">
+    <div class="card">
+      <h2>Today's entry</h2>
+      <div id="todayStatus"></div>
+      <button class="btn btn-primary" onclick="openWrite()">Write today's thoughts</button>
+    </div>
+    <div class="card">
+      <h2>Recent entries</h2>
+      <div id="recentList"></div>
+    </div>
+  </div>
+
+  <!-- WRITE -->
+  <div class="screen" id="screen-write">
+    <div class="card">
+      <div class="card-row">
+        <h2 id="writeHeading" style="margin:0;">New entry</h2>
+        <button id="favoriteToggle" class="mood-btn sans" style="border-radius:8px;" onclick="toggleFavoriteInWrite()">★</button>
+      </div>
+      <label>Date</label>
+      <input type="text" id="entryDate" readonly>
+      <label>Title</label>
+      <input type="text" id="entryTitle" placeholder="Give today a name" oninput="scheduleAutosave()">
+      <label>Mood</label>
+      <div class="mood-row" id="moodRow"></div>
+      <label>Tags <span style="text-transform:none;letter-spacing:0;">(comma separated)</span></label>
+      <input type="text" id="entryTags" placeholder="school, family, gratitude" oninput="scheduleAutosave()">
+      <label>Diary</label>
+      <div class="rt-toolbar sans">
+        <button class="rt-btn" onclick="rtCommand('bold')"><b>B</b></button>
+        <button class="rt-btn" onclick="rtCommand('italic')"><i>I</i></button>
+        <button class="rt-btn" onclick="rtCommand('insertUnorderedList')">•≡</button>
+        <button class="rt-btn" onclick="rtBlockquote()">❝</button>
+      </div>
+      <div class="rt-editor" id="rtEditor" contenteditable="true" oninput="scheduleAutosave(); updateWordCount();"></div>
+      <div class="word-count sans" id="wordCount">0 words</div>
+      <button class="btn btn-primary" onclick="saveEntry(false)">Save entry</button>
+      <button class="btn btn-danger" id="deleteBtn" style="display:none" onclick="deleteEntry()">Move to trash</button>
+      <div class="autosave-note" id="autosaveNote"></div>
+    </div>
+  </div>
+
+  <!-- CALENDAR -->
+  <div class="screen" id="screen-calendar">
+    <div class="card">
+      <div class="cal-header">
+        <button onclick="calPrevMonth()">‹</button>
+        <div class="cal-month-label" id="calMonthLabel"></div>
+        <button onclick="calNextMonth()">›</button>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+  </div>
+
+  <!-- ARCHIVE -->
+  <div class="screen" id="screen-archive">
+    <div class="card">
+      <h2>Search your archive</h2>
+      <input type="text" id="searchInput" placeholder="Search by word, mood, or date" oninput="renderArchive()">
+      <div class="date-range-row">
+        <div>
+          <label class="sans">From</label>
+          <input type="date" id="dateFromInput" onchange="onDateRangeChange()">
+        </div>
+        <div>
+          <label class="sans">To</label>
+          <input type="date" id="dateToInput" onchange="onDateRangeChange()">
+        </div>
+      </div>
+      <div class="filter-row sans" id="filterRow"></div>
+      <div class="sans" id="resultCount" style="font-size:11px;color:var(--ink-soft);margin-top:10px;"></div>
+    </div>
+    <div class="card">
+      <div id="archiveList"></div>
+    </div>
+  </div>
+
+  <!-- TRASH -->
+  <div class="screen" id="screen-trash">
+    <div class="card">
+      <div class="card-row">
+        <h2 style="margin:0;">Trash</h2>
+        <button class="sans" style="background:none;border:none;color:var(--indigo);cursor:pointer;" onclick="showScreen('settings')">Done</button>
+      </div>
+      <p class="sans" style="font-size:12px;color:var(--ink-soft);">Deleted entries stay here until you remove them for good.</p>
+      <div id="trashList"></div>
+    </div>
+  </div>
+
+  <!-- PRINT (used only for PDF export) -->
+  <div class="screen" id="screen-print">
+    <h1 style="font-style:italic;">Ìwé Ìrántí</h1>
+    <div id="printArea"></div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="screen" id="screen-settings">
+    <div class="card">
+      <h2>App</h2>
+      <button class="btn btn-ghost" id="installBtn" style="display:none;" onclick="installApp()">Install as app</button>
+      <button class="btn btn-ghost" onclick="openTrash()">View trash</button>
+    </div>
+    <div class="card">
+      <h2>Privacy & encryption</h2>
+      <button class="btn btn-ghost" onclick="changePin()">Change PIN</button>
+      <button class="btn btn-danger" onclick="removePin()">Remove PIN & decrypt</button>
+    </div>
+    <div class="card">
+      <h2>Daily reminder</h2>
+      <label>Reminder time</label>
+      <input type="time" id="reminderTime">
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="setReminder()">Set reminder</button>
+        <button class="btn btn-danger" onclick="clearReminder()">Turn off</button>
+      </div>
+      <p class="sans" style="font-size:11px;color:var(--ink-soft);margin-top:8px;">Works while the app is open in a tab — this is a static offline app, so it can't wake up in the background like a server-backed app can.</p>
+    </div>
+    <div class="card">
+      <h2>Backup</h2>
+      <button class="btn btn-primary" onclick="exportEncryptedBackup()">Encrypted backup (recommended)</button>
+      <input type="file" id="importEncFile" accept="application/json,.ibak" style="display:none" onchange="importEncryptedBackup(event)">
+      <button class="btn btn-ghost" onclick="document.getElementById('importEncFile').click()">Restore from encrypted backup</button>
+      <p class="sans" style="font-size:11px;color:var(--ink-soft);margin:8px 0 14px;">Locked with a passphrase you choose. This also doubles as PIN recovery — keep the passphrase somewhere safe, since it can't be reset either.</p>
+      <button class="btn btn-ghost" onclick="exportData()">Export entries (plain JSON)</button>
+      <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importData(event)">
+      <button class="btn btn-ghost" onclick="document.getElementById('importFile').click()">Import plain JSON</button>
+      <button class="btn btn-ghost" onclick="exportPDF()">Export to PDF</button>
+      <p class="sans" style="font-size:11px;color:var(--ink-soft);margin-top:8px;">Plain JSON exports are unencrypted — keep that file somewhere private.</p>
+    </div>
+    <div class="card">
+      <h2>About</h2>
+      <p class="sans" style="font-size:13px;color:var(--ink-soft);line-height:1.6;">
+        Ìwé Ìrántí — "the book of remembrance." Everything you write stays on this device, encrypted with your PIN. No account, no server, no internet required.
+      </p>
+    </div>
+  </div>
+
+  <nav class="tabs">
+    <button class="tab-btn active" data-screen="home" onclick="showScreen('home')"><span class="ic">🏠</span>Home</button>
+    <button class="tab-btn" data-screen="write" onclick="openWrite()"><span class="ic">✍️</span>Write</button>
+    <button class="tab-btn" data-screen="calendar" onclick="showScreen('calendar')"><span class="ic">📅</span>Calendar</button>
+    <button class="tab-btn" data-screen="archive" onclick="showScreen('archive')"><span class="ic">📚</span>Archive</button>
+    <button class="tab-btn" data-screen="settings" onclick="showScreen('settings')"><span class="ic">⚙️</span>Settings</button>
+  </nav>
+</div>
+
+<div class="modal-overlay hidden" id="passModal">
+  <div class="modal-card">
+    <h3 id="passModalTitle">Backup passphrase</h3>
+    <p class="sans" id="passModalMsg"></p>
+    <input type="password" id="passModalInput" placeholder="Passphrase" autocomplete="off">
+    <input type="password" id="passModalInput2" placeholder="Confirm passphrase" autocomplete="off" style="display:none;margin-top:8px;">
+    <p class="sans" id="passModalError" style="color:var(--danger);font-size:12px;min-height:16px;margin-top:6px;"></p>
+    <div class="btn-row">
+      <button class="btn btn-ghost" id="passModalCancel">Cancel</button>
+      <button class="btn btn-primary" id="passModalOk">Continue</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="idb.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
