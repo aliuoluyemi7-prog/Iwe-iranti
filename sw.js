@@ -17,8 +17,8 @@ const ASSETS = [
   './reminders.js',
   './app.js',
   './manifest.json',
-  './icons/icon-192.png',
-  './icons/icon-512.png'
+  './icon-192.png',
+  './icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -59,8 +59,8 @@ self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SHOW_REMINDER') {
     self.registration.showNotification(event.data.title || 'Ìwé Ìrántí', {
       body: event.data.body || 'Time to write in your diary.',
-      icon: 'icons/icon-192.png',
-      badge: 'icons/icon-192.png',
+      icon: 'icon-192.png',
+      badge: 'icon-192.png',
       tag: 'diary-reminder'
     });
   }
